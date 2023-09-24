@@ -1,0 +1,58 @@
+### SOFT SENSOR D50 ###
+
+feed_0=110.0  #input:feed
+P_0= 75.8  #input: cyclone pressure
+
+sg=2.7
+circ_L=4.000 #400% circulating load
+feed_p=0.60  #60 %S Cyclone feed
+rho=1.61
+
+DC =0.381 #m     Cyclone diameter
+ID =0.152 #m     Inner diameter
+DO=0.17145 #m    Vortex finder diameter
+DU=0.1016 #m     Spigot diameter
+LC   =0.641 #m   cyclone length
+theta =15 #deg   cone angle
+KD0   =6.00e-5  #D50 constant
+KQ0   =490       #capacity const
+KV1   =6.6       #volume split constant
+KW1   =8.4       #water split conts
+alpha =3.9       #eff curve sharpness
+beta  =0.0       #init dip in eff
+
+
+def cyc_vol(feed):
+    a=feed*(1+circ_L)/feed_p
+    b=feed*(1+circ_L)
+    c=feed*(1+circ_L)/sg
+    cvol=a-b+c
+    return cvol
+
+def rho(feed):
+    cvol=cyc_vol(feed)
+    a=feed*(1+circ_L)/feed_p
+    b=feed*(1+circ_L)
+    c=feed*(1+circ_L)/sg
+    d= a/ (a - b +c)
+    return d
+
+def lumda(feed):
+    c=feed*(1+circ_L)/sg
+    l= 10**((1.82*c)/(cyc_vol(feed))) / (8.05*(1-c/cyc_vol(feed))**2)
+    return l
+
+def D50C(feed,P):
+    f1= DC*KD0* (DC**(-0.65)) *((DO/DC)**0.52) *((DU/DC)**(-0.47)) *((DI/DC)**(-0.5)) \
+    *((LC/DC)**0.2) *(theta**0.15) *((P/(rho(feed)*9.8*DC))**(-0.22)) *(lumda(feed)**0.93)
+    return f1*1000
+
+
+def unit_cap(feed,P):
+    return KQ0*DC**(-0.1)*(DO/DC)**0.68 *(DI/DC)**0.45 *(LC/DC)**0.2 *theta**-0.1 *DC**2 *(P/rho(feed))**0.5 
+
+def numcyc(feed,P):
+    return cyc_vol/unit_cap(feed,P)
+
+
+#WHAT is the time constant? Do feed changes affect D50 immediately?
